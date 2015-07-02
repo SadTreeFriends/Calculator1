@@ -20,9 +20,8 @@ class ViewController: UIViewController {
         let digit = sender.currentTitle!
         
         if (digit == "π"){
-            enter()
-            display.text = "\(M_PI)"
-            enter()
+            brain.variableValues["π"] = 35
+            display.text = "π"
         } else if userIsInTheMiddleOfTypingANumber {
             display.text = display.text! + digit
         } else {
@@ -45,12 +44,18 @@ class ViewController: UIViewController {
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
+        if let result = brain.variableValues[display.text!] { //if var exists in dictionary
+            displayValue = brain.pushOperand(display.text!)
+        }
         displayValue = brain.pushOperand(displayValue!)
     }
     
     var displayValue: Double? {
         get {
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            if let result = NSNumberFormatter().numberFromString(display.text!)?.doubleValue {
+                return result
+            }
+            return brain.variableValues[display.text!]
         }
         
         set {

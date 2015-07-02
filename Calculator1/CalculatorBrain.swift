@@ -14,6 +14,7 @@ class CalculatorBrain {
         case Operand(Double)
         case UnaryOperation(String, Double -> Double)
         case BinaryOperation(String, (Double, Double) -> Double)
+        case Unknown(String)
         
         var description: String {
             get {
@@ -24,10 +25,14 @@ class CalculatorBrain {
                     return symbol
                 case .BinaryOperation(let symbol, _):
                     return symbol
+                case .Unknown(let unknown):
+                    return unknown
                 }
             }
         }
     }
+    
+    var variableValues = [String:Double]()
     
     private var opStack = [Op]()
     
@@ -84,6 +89,8 @@ class CalculatorBrain {
                         return (operation(operand1, operand2), op2Evaluation.remainingOps)
                     }
                 }
+            case .Unknown(let unknown):
+                return (variableValues[unknown], remainingOps)
             }
         }
         return (nil, ops)
@@ -100,10 +107,16 @@ class CalculatorBrain {
         return evaluate()
     }
     
+    func pushOperand(symbol: String) -> Double? {
+        opStack.append(Op.Unknown(symbol))
+        return evaluate()
+    }
+    
     func performOperation(symbol: String) -> Double?{
         if let operation = knownOps[symbol] {
             opStack.append(operation)
         }
         return evaluate()
     }
+    
 }
