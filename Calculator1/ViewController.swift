@@ -57,7 +57,7 @@ class ViewController: UIViewController {
             if let result = newValue {
                 display.text = "\(result)"
             } else {
-                display.text = ""
+                display.text = " "
             }
             userIsInTheMiddleOfTypingANumber = false
         }
