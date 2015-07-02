@@ -38,31 +38,27 @@ class ViewController: UIViewController {
             enter()
         }
         if let operation = sender.currentTitle {
-            if let result = brain.performOperation(operation) {
-                displayValue = result
-            } else {
-                displayValue = 0
-            }
+            displayValue = brain.performOperation(operation)
         }
     }
 
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
-        if let result = brain.pushOperand(displayValue) {
-            displayValue = result
-        } else {
-            displayValue = 0
-        }
+        displayValue = brain.pushOperand(displayValue!)
     }
     
-    var displayValue: Double {
+    var displayValue: Double? {
         get {
             return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
         }
         
         set {
-            display.text = "\(newValue)"
+            if let result = newValue {
+                display.text = "\(result)"
+            } else {
+                display.text = ""
+            }
             userIsInTheMiddleOfTypingANumber = false
         }
     }
