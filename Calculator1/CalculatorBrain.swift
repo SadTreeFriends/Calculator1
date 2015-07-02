@@ -38,6 +38,15 @@ class CalculatorBrain {
     
     private var knownOps = [String:Op]()    //dictionary
     
+    var description: String {
+        get{
+            if let result = parse() {
+                return result
+            }
+            return "What the hell's going on?"
+        }
+    }
+    
     init(){
         func learnOp(op: Op) {
             knownOps[op.description] = op
@@ -48,6 +57,8 @@ class CalculatorBrain {
         knownOps["+"] = Op.BinaryOperation("+", +)
         knownOps["-"] = Op.BinaryOperation("-"){ $1 - $0 }
         knownOps["√"] = Op.UnaryOperation("√", sqrt)
+        learnOp(Op.UnaryOperation("cos", cos))
+        learnOp(Op.UnaryOperation("sin", sin))
     }
     
     var program: AnyObject { //guaranteed to be a PropertyList
@@ -98,17 +109,26 @@ class CalculatorBrain {
     
     func evaluate() -> Double? {
         let (result, remainder) = evaluate(opStack)
+        //println("\(opStack) = \(result) with \(remainder) left over")
+        return result
+    }
+    
+    func parse() -> String? {
+        let (result, remainder) = parseStack(opStack)
         println("\(opStack) = \(result) with \(remainder) left over")
         return result
     }
     
+    
     func pushOperand(operand: Double) -> Double? {
         opStack.append(Op.Operand(operand))
+        println(description)
         return evaluate()
     }
     
     func pushOperand(symbol: String) -> Double? {
         opStack.append(Op.Unknown(symbol))
+        println(description)
         return evaluate()
     }
     
@@ -116,7 +136,35 @@ class CalculatorBrain {
         if let operation = knownOps[symbol] {
             opStack.append(operation)
         }
+        println(description)
         return evaluate()
+    }
+    
+    private func parseStack(ops:[Op]) -> (result: String?, remainingOps: [Op]){
+        if !ops.isEmpty {
+            var remainingOps = ops
+            let op = remainingOps.removeLast()
+            switch op {
+            case .Operand(let operand):
+                return (operand.description, remainingOps)
+            case .UnaryOperation(let description, _):
+                let operandParse = parseStack(remainingOps)
+                if let operand = operandParse.result {
+                    return (description + "(\(operand))",operandParse.remainingOps)
+                }
+            case .BinaryOperation(let description,_):
+                let op1Parse = parseStack(remainingOps)
+                if let operand1 = op1Parse.result {
+                    let op2Parse = parseStack(op1Parse.remainingOps)
+                    if let operand2 = op2Parse.result {
+                        return ("\(operand1)" + description + "\(operand2)", op2Parse.remainingOps)
+                    }
+                }
+            case .Unknown(let unknown):
+                return (unknown, remainingOps)
+            }
+        }
+        return (nil, ops)
     }
     
 }
